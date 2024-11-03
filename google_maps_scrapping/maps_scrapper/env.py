@@ -1,0 +1,2 @@
+URL = "https://www.google.com/maps/place/Paul/@50.8333281,4.0519869,11z/data=!4m12!1m2!2m1!1spaul!3m8!1s0x47c3c4845ec5b809:0xa8aca620c7277d7d!8m2!3d50.8406084!4d4.3665856!9m1!1b1!15sCgRwYXVsIgOIAQFaBiIEcGF1bJIBBmJha2VyeeABAA!16s%2Fg%2F11c2y73ydz?entry=ttu&g_ep=EgoyMDI0MTAyMy4wIKXMDSoASAFQAw%3D%3D"
+DriverLocation = "/usr/local/bin/chromedriver"
