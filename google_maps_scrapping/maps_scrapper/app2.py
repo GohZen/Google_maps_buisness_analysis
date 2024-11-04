@@ -45,7 +45,7 @@ def get_data(driver, data_structure_type):
     print('Collecte des données avis clients...')
     extend_reviews = driver.find_elements("xpath", "//*[contains(@class, 'w8nwRe') and contains(@class, 'kyuRq')]")
 
-    # Developpe chaque avis en appuyant sur le boutton 'plus'
+    # Développe chaque avis en appuyant sur le bouton 'plus'
     for element in extend_reviews:
         driver.execute_script("arguments[0].scrollIntoView();", element)
         try:
@@ -53,104 +53,108 @@ def get_data(driver, data_structure_type):
             print("Clicked successfully!")
         except Exception:
             print("Click intercepted, retrying...")                                                                                
-    
+
     base_xpath = "//body/div/div[3]/div[8]/div[9]/div/div/div/div[3]/div/div/div/div/div[3]"
 
     global_place_reviews_xpath = f"{base_xpath}/div"
     global_elements_reviews_xpath = f"{base_xpath}/div[{10 if data_structure_type == 1 else 8}]"
 
-    # Recuperer la baniere d'avis global de l endroit sur la page
+    # Récupérer la bannière d'avis global de l'endroit sur la page
     global_place_review = driver.find_element("xpath", global_place_reviews_xpath)
-    global_place_review_class_name = global_place_review.get_attribute('class')
 
-    # Recuperer les éléments de reviews sur la page
+    # Récupérer les éléments de reviews sur la page
     elements = driver.find_element("xpath", global_elements_reviews_xpath)
     singular_review_element = elements.find_element("xpath", './div[1]')
     singular_review_class_name = singular_review_element.get_attribute('class')
 
-    # Récupérer tout les éléments d'avis de la page
+    # Récupérer tous les éléments d'avis de la page
     elements = elements.find_elements("xpath", f'//*[@class="{singular_review_class_name}"]')
 
-    # Récupérer les class des details du client de chaque avis
+    # Récupérer les classes des détails du client de chaque avis
     name_client_class = singular_review_element.find_element("xpath", './div/div/div[2]/div[2]/div/button/div').get_attribute('class')
     details_about_client_class = singular_review_element.find_element("xpath", './div/div/div[2]/div[2]/div/button/div[2]').get_attribute('class')
-
-    # Récupérer le text de chaque avis client
-    text_review_client_block = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div').get_attribute('class')
     text_client_review = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/span').get_attribute('class')
-    
-    # Récupérer la précision sur l'avis mis en place par google si précisé 
-
-    # Localiser le bloc principal contenant les éléments div à extraire
-    precision_about_review_block = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/div')
-    precision_about_review_block_class = precision_about_review_block.get_attribute('jslog')
-
-    all_reviews_precision = driver.find_elements("xpath", f'//div[@jslog="{precision_about_review_block_class}"]')
-
-    for singular_review_element in all_reviews_precision:
-        print("Conteneur d'avis parcouru!")
-        try:
-            # Trouver tous les éléments div enfants sous-jacents
-            sub_div_elements = singular_review_element.find_elements("xpath", './div')
-
-            # Parcourir chaque sous-div pour déterminer le cas de figure et   extraire les informations
-            for sub_div in sub_div_elements:
-                try:
-                    # Cas 1 : Le sous-div contient des paires de divs (intitulé + information)
-                    paired_divs = sub_div.find_elements("xpath", './div')
-                    
-                    # Si le div contient des paires, on parcourt chaque paire (deux par deux)
-                    if len(paired_divs) >= 2:  # Assure qu'il y a au moins deux divs pour une paire
-                        print("ENTREE CAS 1")
-                        for i in range(0, len(paired_divs), 2):
-                            # Vérifie qu'il y a bien une paire avant d'extraire les infos
-                            if i + 1 < len(paired_divs):
-                                # On suppose que le premier div de la paire contient l'intitulé, et le second l'information
-                                title = paired_divs[i].text.strip()  # Récupère le texte de l'intitulé
-                                info = paired_divs[i + 1].text.strip()  # Récupère le texte de l'information
-                                print(f"Case 1 - Title: {title}, Info: {info}")
-                            else:
-                                print("Paire incomplète détectée.")
-
-                    # Cas 2 : Le sous-div contient directement l'intitulé et l'information dans `./span/span`
-                    else:
-                        print("ENTREE CAS 2")
-                        # Extraire l'intitulé dans la balise <b> et l'information dans le second <span>
-                        title = sub_div.find_element("xpath", './div/span/span/b').text.strip()  # Récupère le texte de l'intitulé
-                        info = sub_div.find_element("xpath", './div/span/span').text.strip()      # Récupère le texte global du span
-
-                        # Supprime l'intitulé du texte de l'information
-                        info = info.replace(title, '').strip()
-                        print(f"Case 2 - Title: {title}, Info: {info}")
-
-                except Exception as e:
-                    # Gérer le cas où un élément attendu est manquant
-                    print(f"Element missing or unexpected structure: {e}")
-        except Exception as e:
-            # Gérer le cas où un élément attendu est manquant dans l'élément de revue
-            print(f"Element missing or unexpected structure in review element: {e}")
-
-            
 
     lst_data = []
+
     for data in elements:
+        # Initialiser les valeurs par défaut
         name = 'Non spécifié'
         details_client = 'Non spécifié'
         text = 'Non spécifié'
-        review_details = 'Non spécifié'
-        score = '-'
+        review_details = []
+
         try:
+            # Extraction des informations principales pour chaque client
             name = data.find_element("xpath", f'.//*[@class="{name_client_class}"]').text
             details_client = data.find_element("xpath", f'.//*[@class="{details_about_client_class}"]').text
-            text = data.find_element("xpath", f'.//*[@class="{text_client_review}"]').text
-            review_details = data.find_element("xpath", f'.//*[@class="{precision_about_review_block}"]').text
-        except Exception:
-            pass
-        
-        # Ajouter les éléments extrait dans la liste 'lst_data'
-        lst_data.append([f"{name} depuis Google Maps", details_client, text, review_details])
+            text = data.find_element("xpath", f'.//*[@class="{text_client_review}"][not(@lang="fr")]').text
 
-    print("Tout s est bien passé!")
+            # Localiser le bloc principal contenant les éléments div à extraire
+            try:
+                precision_about_review_block = data.find_element("xpath", './div/div/div[4]/div[2]/div/div')
+                precision_about_review_block_class = precision_about_review_block.get_attribute('jslog')
+                all_reviews_precision = driver.find_elements("xpath", f'//div[@jslog="{precision_about_review_block_class}"]')
+
+                for singular_review_element in all_reviews_precision:
+                    print("Conteneur d'avis parcouru!")
+                    sub_div_elements = singular_review_element.find_elements("xpath", './div')
+
+                    # Traiter chaque sous-élément div
+                    for sub_div in sub_div_elements:
+                        try:
+                            paired_divs = sub_div.find_elements("xpath", './div')
+                            # Vérification pour les paires de divs (Cas 1)
+                            if len(paired_divs) >= 2:
+                                for i in range(0, len(paired_divs), 2):
+                                    if i + 1 < len(paired_divs):
+                                        title = paired_divs[i].text.strip()
+                                        info = paired_divs[i + 1].text.strip()
+                                        review_details.append({title: info}) 
+                                        print(f"Case 1 - Title: {title}, Info: {info}")
+                            else:
+                                # Vérification pour les éléments uniques (Cas 2)
+                                title = sub_div.find_element("xpath", './div/span/span/b').text.strip()
+                                info = sub_div.find_element("xpath", './div/span/span').text.strip()
+                                info = info.replace(title, '').strip()
+                                review_details.append({title: info})
+                                print(f"Case 2 - Title: {title}, Info: {info}")
+
+                        except Exception as e:
+                            print(f"Erreur à la deuxième couche: {e}")
+
+            except Exception as e:
+                print(f"Erreur lors de l'extraction du bloc de précision d'avis : {e}")
+
+            # Ajouter le dictionnaire pour chaque avis avec ses détails isolés dans 'lst_data'
+            lst_data.append({
+                "name": f"{name} depuis Google Maps",
+                "details_client": details_client,
+                "text": text,
+                "review_details": review_details
+            })
+
+        except Exception as e:
+            print(f"Erreur à la première couche: {e}")
+
+    # Affichage final des données de manière lisible
+    for i, review_data in enumerate(lst_data, start=1):
+        print(f"\nAvis {i}:")
+        print(f"  Nom du client          : {review_data['name']}")
+        print(f"  Détails du client      : {review_data['details_client']}")
+        print(f"  Texte de l'avis        : {review_data['text']}")
+        print(f"  Détails supplémentaires:")
+        
+        if review_data["review_details"]:
+            for detail in review_data["review_details"]:
+                for title, info in detail.items():
+                    print(f"    - {title} : {info}")
+        else:
+            print("    Aucun détail supplémentaire")
+        
+        print("\n" + "-" * 40)  # Séparateur pour chaque avis
+
+    print("Tout s'est bien passé!")
     return lst_data
 
 if __name__ == "__main__":
@@ -181,7 +185,7 @@ if __name__ == "__main__":
     scroll_page(driver, count)
     
     data = get_data(driver, data_structure_type)
-    # driver.quit()
+    driver.quit()
 
     print(data)
     
