@@ -48,6 +48,7 @@ def display_reviews(lst_data):
         print(f"  Nom du client          : {review_data['name']}")
         print(f"  Détails du client      : {review_data['details_client']}")
         print(f"  Date de l'avis         : {review_data['review_date']}")
+        print(f"  Etoile sur l'avis      : {review_data['star_rating']}")
         print(f"  Texte de l'avis        : {review_data['text']}")
         print(f"  Détails supplémentaires:")
         
@@ -74,6 +75,7 @@ def get_data(driver, data_structure_type):
             print("Click intercepted, retrying...")                                                                                
 
     base_xpath = "//body/div/div[3]/div[8]/div[9]/div/div/div/div[3]/div/div/div/div/div[3]"
+    poi_name_path = "//body/div/div[3]/div[8]/div[9]/div/div/div/div[3]/div/div/div/div/div/div/div/div[2]/div/div/span"
 
     global_place_reviews_xpath = f"{base_xpath}/div"
     global_elements_reviews_xpath = f"{base_xpath}/div[{10 if data_structure_type == 1 else 8}]"
@@ -92,19 +94,18 @@ def get_data(driver, data_structure_type):
     # Récupérer les classes des détails du client de chaque avis
     name_client_class = singular_review_element.find_element("xpath", './div/div/div[2]/div[2]/div/button/div').get_attribute('class')
     details_about_client_class = singular_review_element.find_element("xpath", './div/div/div[2]/div[2]/div/button/div[2]').get_attribute('class')
-    text_client_review = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/span').get_attribute('class')
+    text_client_review_class = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/span').get_attribute('class')
     date_reviews_client_class = singular_review_element.find_element("xpath", './div/div/div[4]/div/span[2]').get_attribute('class')
+
+    start_client_rating_class = singular_review_element.find_element("xpath", './div/div/div[4]/div/span').get_attribute('class')
+    positive_client_star_class = singular_review_element.find_element("xpath", './div/div/div[4]/div/span/span').get_attribute('class')
 
     precision_about_review_block = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/div')
     precision_about_review_block_jslog = precision_about_review_block.get_attribute('jslog')
 
     all_reviews_precision = driver.find_elements("xpath", f'.//div[@jslog="{precision_about_review_block_jslog}"]')
-     
-    #print("Contenu de all_reviews_precision:", all_reviews_precision)
-    #print("Nombre d'éléments:", len(all_reviews_precision))
 
     lst_data = []
-
     for data in elements:
         # Initialiser les valeurs par défaut
         name = 'Non spécifié'
@@ -112,6 +113,7 @@ def get_data(driver, data_structure_type):
         text = 'Non spécifié'
         review_details = []
         review_date = 'Non spécifié'
+        client_star_rate = 'Non spécifié'
 
         # Extraction des informations principales pour chaque client
         try:
@@ -125,7 +127,7 @@ def get_data(driver, data_structure_type):
             pass
 
         try:
-            text = data.find_element("xpath", f'.//*[@class="{text_client_review}"][not(@lang="fr")]').text
+            text = data.find_element("xpath", f'.//*[@class="{text_client_review_class}"][not(@lang="fr")]').text
         except Exception:
             pass
 
@@ -133,6 +135,19 @@ def get_data(driver, data_structure_type):
             review_date = data.find_element("xpath", f'.//*[@class="{date_reviews_client_class}"]').text
         except Exception:
             pass
+
+        try:     
+            count = 0
+            stars_inside_div = data.find_elements("xpath", f'.//*[@class="{start_client_rating_class}"]/span')
+            for star in stars_inside_div:
+                if star.get_attribute('class') == positive_client_star_class:
+                    count += 1
+
+            client_star_rate = count  
+                
+        except Exception as e:
+            print(f"Erreur avec le count star: {e}")
+            #pass
 
         # Localiser le bloc principal contenant les éléments div à extraire
         try:
@@ -165,6 +180,7 @@ def get_data(driver, data_structure_type):
             "name": f"{name} depuis Google Maps",
             "details_client": details_client,
             "review_date": review_date,
+            "star_rating": client_star_rate,
             "text": text,
             "review_details": review_details    
         })
