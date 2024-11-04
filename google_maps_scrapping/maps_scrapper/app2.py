@@ -59,7 +59,7 @@ def display_reviews(lst_data):
         else:
             print("    Aucun détail supplémentaire")
         
-        print("\n" + "-" * 40)  # Séparateur pour chaque avis
+        print("\n" + "-" * 40)
 
 def get_data(driver, data_structure_type):    
     print('Collecte des données avis clients...')
@@ -103,8 +103,6 @@ def get_data(driver, data_structure_type):
     precision_about_review_block = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/div')
     precision_about_review_block_jslog = precision_about_review_block.get_attribute('jslog')
 
-    all_reviews_precision = driver.find_elements("xpath", f'.//div[@jslog="{precision_about_review_block_jslog}"]')
-
     lst_data = []
     for data in elements:
         # Initialiser les valeurs par défaut
@@ -146,10 +144,8 @@ def get_data(driver, data_structure_type):
             client_star_rate = count  
                 
         except Exception as e:
-            print(f"Erreur avec le count star: {e}")
-            #pass
+            pass
 
-        # Localiser le bloc principal contenant les éléments div à extraire
         try:
             if (data.find_element("xpath", f'.//div[@jslog="{precision_about_review_block_jslog}"]')):
                 sub_div_elements = data.find_elements("xpath", f'.//div[@jslog="{precision_about_review_block_jslog}"]/div')
@@ -175,7 +171,6 @@ def get_data(driver, data_structure_type):
         except Exception as e:
             pass
 
-        # Ajouter le dictionnaire pour chaque avis avec ses détails isolés dans 'lst_data'
         lst_data.append({
             "name": f"{name} depuis Google Maps",
             "details_client": details_client,
@@ -185,7 +180,7 @@ def get_data(driver, data_structure_type):
             "review_details": review_details    
         })
 
-    display_reviews(lst_data)
+    #display_reviews(lst_data)
 
     print("Tout s'est bien passé!")
     return lst_data
