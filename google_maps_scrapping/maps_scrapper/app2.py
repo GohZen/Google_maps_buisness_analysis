@@ -50,7 +50,7 @@ def get_data(driver, data_structure_type):
         driver.execute_script("arguments[0].scrollIntoView();", element)
         try:
             element.click()
-            print("Clicked successfully!")
+            #print("Clicked successfully!")
         except Exception:
             print("Click intercepted, retrying...")                                                                                
 
@@ -97,7 +97,7 @@ def get_data(driver, data_structure_type):
                 all_reviews_precision = driver.find_elements("xpath", f'//div[@jslog="{precision_about_review_block_class}"]')
 
                 for singular_review_element in all_reviews_precision:
-                    print("Conteneur d'avis parcouru!")
+                    #print("Conteneur d'avis parcouru!")
                     sub_div_elements = singular_review_element.find_elements("xpath", './div')
 
                     # Traiter chaque sous-élément div
@@ -111,14 +111,14 @@ def get_data(driver, data_structure_type):
                                         title = paired_divs[i].text.strip()
                                         info = paired_divs[i + 1].text.strip()
                                         review_details.append({title: info}) 
-                                        print(f"Case 1 - Title: {title}, Info: {info}")
+                                        # print(f"Case 1 - Title: {title}, Info: {info}")
                             else:
                                 # Vérification pour les éléments uniques (Cas 2)
                                 title = sub_div.find_element("xpath", './div/span/span/b').text.strip()
                                 info = sub_div.find_element("xpath", './div/span/span').text.strip()
                                 info = info.replace(title, '').strip()
                                 review_details.append({title: info})
-                                print(f"Case 2 - Title: {title}, Info: {info}")
+                                # print(f"Case 2 - Title: {title}, Info: {info}")
 
                         except Exception as e:
                             print(f"Erreur à la deuxième couche: {e}")
