@@ -1,4 +1,5 @@
 import time
+import csv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -185,6 +186,42 @@ def get_data(driver, data_structure_type):
     print("Tout s'est bien passé!")
     return lst_data
 
+def save_data_to_csv(raw_data, filename="avis_clients.csv"):
+    with open(filename, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+
+        headers = [
+            "Nom du client",
+            "Details du client",
+            "Date",
+            "Etoiles",
+            "Texte",
+            "Details avis"
+        ]
+
+        writer.writerow(headers)
+
+        for single_review_data in raw_data:
+            if single_review_data["review_details"]:
+                details_str = "; ".join(
+                    f"{title}: {info}"
+                    for detail in single_review_data["review_details"]
+                    for title, info in detail.items()
+                )
+            else:
+                details_str = "Aucun détails supplémentaires"
+
+            writer.writerow([
+                single_review_data["name"],
+                single_review_data["details_client"],
+                single_review_data["review_date"],
+                single_review_data["star_rating"],
+                single_review_data["text"],
+                details_str
+            ])
+    print(f"Les avis ont été enregistrés dans le fichier '{filename}' avec succès.")
+
+
 if __name__ == "__main__":
     url = "https://www.google.com/"
     url2 = "https://www.google.com/maps/place/Paul/@50.8333281,4.0519869,11z/data=!4m12!1m2!2m1!1spaul!3m8!1s0x47c3c4845ec5b809:0xa8aca620c7277d7d!8m2!3d50.8406084!4d4.3665856!9m1!1b1!15sCgRwYXVsIgOIAQFaBiIEcGF1bJIBBmJha2VyeeABAA!16s%2Fg%2F11c2y73ydz?entry=ttu&g_ep=EgoyMDI0MTAyMy4wIKXMDSoASAFQAw%3D%3D"
@@ -215,6 +252,8 @@ if __name__ == "__main__":
     data = get_data(driver, data_structure_type)
     driver.quit()
 
+    save_data_to_csv(data)
+    
     # print(data)
     
 
