@@ -29,7 +29,8 @@ def get_review_count(driver):
             EC.presence_of_element_located((By.XPATH, '//body/div/div[3]/div[8]/div[9]/div/div/div/div[2]/div/div/div/div/div[2]/div/div/div[2]/div[3]'))
         ).text
         
-    result = result.replace(',', '').replace('.', '').split()[0]
+    #result = result.replace(',', '').replace('.', '').split()[0]
+    result = ''.join(result.split()[:2])  # cela donnera "3677" pour le cas "3 677 avis"
     return int(int(result) / 10) + 1, data_structure_type
 
 def scroll_page(driver, count):
@@ -79,18 +80,34 @@ def parse_details_review(details_review):
     # Remplissage des sous-catégories si elles sont présentes dans le texte
     for detail in details_review:
         for title, info in detail.items():
-            if "Service" in title and "type" not in title:
-                parsed_details["service_type"] = info
+            if title == "Service":
+                # Si info est une note de service
+                if info.startswith(":") and info[2:].strip().isdigit():
+                    note = int(info[2:].strip())
+                    if 1 <= note <= 5:
+                        parsed_details["service_rating"] = note
+                else:
+                    parsed_details["service_type"] = info
             elif "Type de repas" in title:
                 parsed_details["meal_type"] = info
             elif "Prix par personne" in title:
                 parsed_details["price_per_person"] = info
             elif "Cuisine" in title:
-                parsed_details["cuisine_rating"] = info
-            elif "Service" in title and "type" in title:
-                parsed_details["service_rating"] = info
+                # Si info est une note de cuisine
+                if info.startswith(":") and info[2:].strip().isdigit():
+                    note = int(info[2:].strip())
+                    if 1 <= note <= 5:
+                        parsed_details["cuisine_rating"] = note
+                else:
+                    parsed_details["cuisine_rating"] = info
             elif "Ambiance" in title:
-                parsed_details["ambiance_rating"] = info
+                # Si info est une note d'ambiance
+                if info.startswith(":") and info[2:].strip().isdigit():
+                    note = int(info[2:].strip())
+                    if 1 <= note <= 5:
+                        parsed_details["ambiance_rating"] = note
+                else:
+                    parsed_details["ambiance_rating"] = info
             elif "Plats recommandés" in title:
                 parsed_details["recommended_dishes"] = info
 
@@ -210,7 +227,7 @@ def get_data(driver, data_structure_type):
             "recommended_dishes": parsed_review_details["recommended_dishes"]
         })
 
-    display_reviews(lst_data)
+    #display_reviews(lst_data)
 
     print("Tout s'est bien passé!")
     return lst_data
@@ -258,7 +275,7 @@ def save_data_to_csv(raw_data, filename="avis_clients.csv"):
 
 if __name__ == "__main__":
     url = "https://www.google.com/"
-    url2 = "https://www.google.com/maps/place/Paul/@50.8333281,4.0519869,11z/data=!4m12!1m2!2m1!1spaul!3m8!1s0x47c3c4845ec5b809:0xa8aca620c7277d7d!8m2!3d50.8406084!4d4.3665856!9m1!1b1!15sCgRwYXVsIgOIAQFaBiIEcGF1bJIBBmJha2VyeeABAA!16s%2Fg%2F11c2y73ydz?entry=ttu&g_ep=EgoyMDI0MTAyMy4wIKXMDSoASAFQAw%3D%3D"
+    url2 = "https://www.google.com/maps/place/L'Amusoir/@50.719048,4.3954961,17z/data=!4m12!1m2!2m1!1samusoir+bar+waterloo!3m8!1s0x47c3d1d2fd1735ff:0x89dbd4803d26e004!8m2!3d50.7190919!4d4.3981205!9m1!1b1!15sChRhbXVzb2lyIGJhciB3YXRlcmxvb1oWIhRhbXVzb2lyIGJhciB3YXRlcmxvb5IBCnJlc3RhdXJhbnTgAQA!16s%2Fg%2F1pxwv0q2z?entry=ttu&g_ep=EgoyMDI0MTAyOS4wIKXMDSoASAFQAw%3D%3D"
 
     print("demarrage scrapping...")
     options = Options()
