@@ -28,9 +28,10 @@ def get_review_count(driver):
         result = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, '//body/div/div[3]/div[8]/div[9]/div/div/div/div[2]/div/div/div/div/div[2]/div/div/div[2]/div[3]'))
         ).text
-        
+    
+    print(result)
     #result = result.replace(',', '').replace('.', '').split()[0]
-    result = ''.join(result.split()[:2])  # cela donnera "3677" pour le cas "3 677 avis"
+    result = ''.join(filter(str.isdigit, result))  # garde uniquement les chiffres dans 'result'
     return int(int(result) / 10) + 1, data_structure_type
 
 def scroll_page(driver, count):
@@ -110,9 +111,13 @@ def parse_details_review(details_review):
                     parsed_details["ambiance_rating"] = info
             elif "Plats recommandés" in title:
                 parsed_details["recommended_dishes"] = info
+    
+    # Ajout d'une vérification pour éviter les valeurs comme ": 3..."
+    for key in ["service_rating", "cuisine_rating", "ambiance_rating"]:
+        if isinstance(parsed_details[key], str) and ':' in parsed_details[key]:
+            parsed_details[key] = None  # Remplace les valeurs mal formatées par None
 
     return parsed_details
-
 
 def get_data(driver, data_structure_type):    
     print('Collecte des données avis clients...')
@@ -144,12 +149,17 @@ def get_data(driver, data_structure_type):
     date_reviews_client_class = singular_review_element.find_element("xpath", './div/div/div[4]/div/span[2]').get_attribute('class')
     start_client_rating_class = singular_review_element.find_element("xpath", './div/div/div[4]/div/span').get_attribute('class')
     positive_client_star_class = singular_review_element.find_element("xpath", './div/div/div[4]/div/span/span').get_attribute('class')
-    precision_about_review_block = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/div')
-    precision_about_review_block_jslog = precision_about_review_block.get_attribute('jslog')
+    
+    try:
+        precision_about_review_block = singular_review_element.find_element("xpath", './div/div/div[4]/div[2]/div/div')
+        precision_about_review_block_jslog = precision_about_review_block.get_attribute('jslog')
+    except Exception:
+        print("Pas de précision de review trouvés pour cet élément...")
 
     lst_data = []
     for data in elements:
         # Initialiser les valeurs par défaut
+        # REMPLACER PAR NONE POUR LES INIT DE BASE
         name = 'Non spécifié'
         details_client = 'Non spécifié'
         text = 'Non spécifié'
@@ -275,7 +285,7 @@ def save_data_to_csv(raw_data, filename="avis_clients.csv"):
 
 if __name__ == "__main__":
     url = "https://www.google.com/"
-    url2 = "https://www.google.com/maps/place/L'Amusoir/@50.719048,4.3954961,17z/data=!4m12!1m2!2m1!1samusoir+bar+waterloo!3m8!1s0x47c3d1d2fd1735ff:0x89dbd4803d26e004!8m2!3d50.7190919!4d4.3981205!9m1!1b1!15sChRhbXVzb2lyIGJhciB3YXRlcmxvb1oWIhRhbXVzb2lyIGJhciB3YXRlcmxvb5IBCnJlc3RhdXJhbnTgAQA!16s%2Fg%2F1pxwv0q2z?entry=ttu&g_ep=EgoyMDI0MTAyOS4wIKXMDSoASAFQAw%3D%3D"
+    url2 = "https://www.google.com/maps/place/Paul/@40.4426809,-3.7174492,12z/data=!3m1!5s0xd422e0f61a610a7:0x292adb6bede30388!4m12!1m2!2m1!1spaul!3m8!1s0xd422e0f7d078031:0x9384d6eb08e0c932!8m2!3d40.4913111!4d-3.5917845!9m1!1b1!15sCgRwYXVsIgOIAQFaBiIEcGF1bJIBBmJha2VyeeABAA!16s%2Fg%2F11b76gddyh?entry=ttu&g_ep=EgoyMDI0MTAyOS4wIKXMDSoASAFQAw%3D%3D"
 
     print("demarrage scrapping...")
     options = Options()
